@@ -1,10 +1,9 @@
 const inquirer = require('inquirer');
 //import and require mysql2
 const mysql = require('mysql2');
-
-const table = require ('console.table');
-const express = require('express');
+const consoleTable = require ('console.table');
 const Connection = require('mysql/lib/Connection');
+const promisesql = require('promise-mysql');
 
 
 
@@ -32,82 +31,79 @@ function startPrompt() {
         type: 'list',
         name: 'prompt',
         message: 'Please choose one of the following...',
-        choices: ['View All Departments', 'View All Roles', 'View All Employees', 'Add A Department', 'Add A Role', 'Add An Employee', 'Update An Employee']
+        choices: [
+                'View All Departments', 
+                'View All Roles', 
+                'View All Employees', 
+                'Add A Department', 
+                'Add A Role', 
+                'Add An Employee', 
+                'Update An Employee',
+                'End',]
         }
     ])
-    .then((answers) => {
-        if (answers.list === "view All Departments") {
-            viewAllDepartments();
-        } else if (answers.list === "View All Roles") {
-            viewAllRoles();
-        } else if (answers.list === "View All Employees") {
-            viewAllEmployees();
-        } else if (answers.list === "Add A Department") {
-            addDepartment();
-        } else if (answers.list === "Add A Role") {
-            addRole();
-        } else if (answers.list === "Add An Employee") {
-            addEmployee();
-        } else if (answers.list === "Update An Employee") {
-            updateEmployee();
+    .then(function({prompt}) {
+        switch (prompt) {
+            case "View All Departments":
+                viewAllDepartments();
+                break;
+            case "View All Employees":
+                viewAllEmployees();
+                break;
+            case "View All Roles":
+                viewAllRoles();
+                break;
+            case "Add Department":
+                addDepartment();
+                break;
+            case "Add a Role":
+                addRole();
+                break;
+            case "Add an Employee":
+                addEmployee();
+                break;
+            case "Update Employee":
+                updateEmployee();
+                break;
+            case "End":
+                Connection.end();
+                break;
+            
         }
     });
+
 }
-//View All Departments
 function viewAllDepartments() {
-    console.log("Viewing Departments\n");
-// query to join the data
-    var query = 
-    `SELECT d.id, d.name, r.salary AS budget
+    console.log("VIEWING DEPARTMENTS");
+    let departments = `SELECT * FROM department`
+    db.query(departments, (err, results) => {
+        if (err) throw err;
+
+        console.log(`DEPARTMENTS VIEWED\n`);
+        console.table(results);
+        startPrompt();
+    });
+} 
+// View All Employees
+function viewAllEmployees() {
+    console.log("Viewing All Employees");
+    let employees =
+    `SELECT e.id, e.first_name, e.lasy_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
     FROM employee e
     LEFT JOIN role r
         ON e.role_id = r.id
-    LEFT JOIN department d 
-    ON d.id = r.department_id
-    GROUP BY d.id, d.name`
-//connsecting the query
-    Connection.query(query, function (err, res) {
+    LEFT JOIN employee m
+        ON m.id = e.manager_id`
+
+    db.query(employees, (err, results) => {
         if(err) throw err;
 
-        const departments = res.map(data => ({
-            value: data.id, name: data.name
-        }));
-
-        console.table(res);
-        console.log("Successful Departments\n");
-
-        promptDepartment(departments);
-    });
-}  
-// prompt for when a user selects view all departments
-
-function promptDepartment(departments) {
-
-    inquirer.prompt([
-        {
-            type: "list",
-            name: "departmentId",
-            message: "Which department are you looking for?",
-            choices: departments
-        }
-    ])
-    .then(function(answer) {
-        console.log("answer ", answer.departmentId);
-
-        var query = 
-        `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department
-        FROM employee e
-        JOIN department d
-        ON d.id = r.department_id
-        WHERE d.id = ?`
-
-            Connection.query(query, answer.departmentId, function (err, res) {
-                if (err) throw err;
-
-                console.table("response ". res);
-                console.log(res.affectedRows + "Viewing Employees\n");
-
-                startPrompt();
-            });
+        console.log(`EMPLOYEES VIEWED\n`);
+        console.table(results);
+        startPrompt();
     });
 }
+
+// View All Roles
+
+ 
