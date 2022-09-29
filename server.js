@@ -1,7 +1,7 @@
 const inquirer = require('inquirer');
 //import and require mysql2
 const mysql = require('mysql2');
-const consoleTable = require ('console.table');
+const table = require ('console.table');
 const Connection = require('mysql/lib/Connection');
 const promisesql = require('promise-mysql');
 
@@ -66,7 +66,7 @@ function startPrompt() {
                 updateEmployee();
                 break;
             case "End":
-                Connection.end();
+                endTracker();
                 break;
             
         }
@@ -198,10 +198,10 @@ function addRole() {
             }
 
         db.query(`INSERT INTO roles (title, salary, department_id)
-        VALUES ("${input.rolename}", ${input.salary}, ${deptId})`, (err, res) => {
+        VALUES ("${input.rolename}", ${input.salary}, ${depId})`, (err, res) => {
                 if (err) return err;
                 console.log(`\n ${input.rolename} has been added to the database! \n`);
-                mainMenu();
+                startPrompt();
             });
         });
     });
@@ -214,11 +214,11 @@ function addEmployee() {
     let managerArray = [];
 
     promisesql.createConnection(db)
-        .then((connect) => {
+        .then((db) => {
             return Promise.all([
 
-                connect.query(`SELECT id, title FROM roles ORDER BY title ASC`),
-                connect.query("SELECT employee.id, concat(employee.first_name, ' ', employee.last_name AS Employee FROM employee ORDER BY Employee ASC" )
+                db.query(`SELECT id, title FROM roles ORDER BY title ASC`),
+                db.query("SELECT employee.id, concat(employee.first_name, ' ', employee.last_name AS Employee FROM employee ORDER BY Employee ASC" )
 
             ]);
         }).then(([roles, managers]) => {
@@ -291,10 +291,76 @@ function addEmployee() {
             VALUES ("${input.first_name}", "${input.last_name}", ${roleId}, ${managerId})`, (err, res) => {
                    if (err) return err;
                    console.log(`\n ${input.first_name} ${input.last_name} ADDED TO DB! \n `);
-                   mainMenu();
+                   startPrompt();
                }
                );
         });
     });
 
 };
+
+//Update Employee
+
+function updateEmployee () {
+
+    let employeeArray = [];
+    let roleArray = [];
+
+    promisesql.createConnection(db)
+        .then((db) => {
+            return Promise.all([
+                db.query(`SELECT id, title FROM roles ORDER BY title ASC`),
+                db.query("SELECT employee.id, concat(employee.first_name, ' ' ,  employee.last_name) AS Employee FROM employee ORDER BY Employee ASC")
+            ]);
+        }).then(({ roles, employees}) => {
+            for ( i = 0; i < roles.length; i++) {
+                roleArray.push(roles[i].title);
+            }
+            for ( i = 0; i < employees.length; i++) {
+                employeeArray.push(roles[i].title);
+            }
+
+            return Promise.all([roles, employees]);
+        }).then(([roles, employees]) => {
+
+            inquirer.prompt([
+                {
+                    name: 'employee',
+                    type: 'list',
+                    message: 'Which employee would you like to update?',
+                    choices: employeeArray
+                },
+                {
+                    name: 'role',
+                    type: 'list',
+                    message: 'What is their role?',
+                    choices: roleArray
+                },
+            ])
+            .then((input) => {
+                let roleId;
+                let employeeId;
+
+                for ( i = 0; i < roles.length; i++) {
+                    if (input.role == roles[i].title) {
+                        roleId = roles[i].id;
+                    }
+                }
+                for ( i = 0; i < employees.length; i++) {
+                    if(input.employee == employees[i].Employee) {
+                        employeeId = employees[i].id;
+                    }
+                }
+                db.query(`UPDATE employee SET role_id = ${roleId} WHERE id = ${employeeId}`, (err, res) => {
+                    if (err) return err;
+                    console.log(`\n ${input.employee}'s role updated in db \n `);
+                    startPrompt();
+                });
+            });
+        });
+}
+
+function endTracker() {
+    console.log('CLOSING EMPLOYEE TRACKER');
+    db.end();
+}
