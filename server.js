@@ -105,5 +105,196 @@ function viewAllEmployees() {
 }
 
 // View All Roles
+function viewAllRoles() {
+    console.log("Viewing All Roles");
+    let roles = 
+    `SELECT roles.id, roles.title, roles.salary, department.department_name FROM roles
+    INNER JOIN department ON roles.department_i=department.id`
+    db.query(roles, (err, results) => {
+        if(err) throw err;
 
- 
+        console.log(`VIEWED ROLES\n`);
+        console.table(results);
+        startPrompt();
+    });
+}
+
+// Add Department
+function addDepartment () {
+    return inquirer.prompt ({
+        type: 'input',
+        name: 'department_name',
+        message: 'What would you like to name this department?',
+        validate: function (department_name) {
+            if (department_name.length <= 30) {
+                return true;
+            } else {
+                console.log("Must not exceed 30 characters!");
+                return false;
+            }
+        }
+    })
+    .then((input) => {
+        db.query(
+            `insert INTO department (department_name)
+            VALUES ('${input.department_name}');`,
+                (err, results) => {
+                    if (err) throw err;
+
+                    console.log(`CREATED DEPARTMENT\n`);
+                    console.log(`${input.department_name} added to db`);
+                    startPrompt();
+                }
+        );
+    });
+};
+
+// Add New Role
+function addRole() {
+    let depArray = [];
+
+    promisesql.createConnection(db)
+        .then((connect) => {
+            return connect.query(`SELECT id, department_name FROM department`);
+        })
+        .then((departments) => {
+            for(i=0; i < departments.length; i++) {
+            depArray.push(departments[i].department_name);
+        }
+        return departments;
+    })
+    .then((departments) => {
+        inquirer.prompt([
+            {
+                name: 'role_name',
+                type: 'input',
+                message: 'What would you like to name this role?'
+            },
+            {
+                name: 'salary',
+                type: 'input',
+                message: 'What is the salary for this role?',
+                validate: input => {
+                    if(isNaN(input)) {
+                        console.log('Must enter salary');
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+            },
+            {
+                name: 'department_role',
+                type: 'list',
+                message: 'Choose a department for this role?',
+                choices: depArray
+            }
+        ])
+        .then((input) => {
+            let depId;
+
+            for(i=0; i < departments.length; i++) {
+                depId = departments[i].id;
+            }
+
+        db.query(`INSERT INTO roles (title, salary, department_id)
+        VALUES ("${input.rolename}", ${input.salary}, ${deptId})`, (err, res) => {
+                if (err) return err;
+                console.log(`\n ${input.rolename} has been added to the database! \n`);
+                mainMenu();
+            });
+        });
+    });
+}
+
+// Add Employee
+function addEmployee() {
+
+    let roleArray = [];
+    let managerArray = [];
+
+    promisesql.createConnection(db)
+        .then((connect) => {
+            return Promise.all([
+
+                connect.query(`SELECT id, title FROM roles ORDER BY title ASC`),
+                connect.query("SELECT employee.id, concat(employee.first_name, ' ', employee.last_name AS Employee FROM employee ORDER BY Employee ASC" )
+
+            ]);
+        }).then(([roles, managers]) => {
+            for (i = 0; i < roles.length; i++) {
+            roleArray.push(roles[i].title);
+        }
+        for (i =0; i < managers.length; i++){
+            managerArray.push(managers[i].Employee);
+        }
+        return Promise.all([roles, managers]);
+    })
+    .then(([roles, managers]) => {
+        managerArray.unshift('--');
+
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'first_name',
+                message: "Input first name of employee...",
+                validate: function (first_name) {
+                    if (first_name.length <= 30) {
+                        return true;
+                    } else {
+                        console.log(`Must not exceed 30 characters!\n`)
+                        return false;
+                    }
+                }
+            },
+            {
+                type: 'input',
+                name: 'last_name',
+                message: "Input employees last name",
+                validate: function (last_name) {
+                    if (last_name.length <= 30) {
+                        return true;
+                    } else {
+                        console.log(`Must not exceed 30 characters\n`)
+                        return false;
+                    }
+                }
+            },
+            {
+                name: 'role',
+                type: 'list',
+                message: 'Input employees role',
+                choices: roleArray
+            },
+            {
+                name: 'manager',
+                type: 'list',
+                message: 'Who is the employees manager?',
+                choices: managerArray
+            }
+        ])
+        .then ((input) => {
+            let roleId;
+            let managerId = null;
+
+            for (i = 0; i < roles.length; i++) {
+                if (input.role == roles[i].title){
+                    roleId = roles[i].id;
+                }
+            }
+            for ( i = 0; i < managers.length; i++) {
+                if (input.manager == managers[i].Employee) {
+                    managerId = managers[i].id;
+                }
+            }
+            db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
+            VALUES ("${input.first_name}", "${input.last_name}", ${roleId}, ${managerId})`, (err, res) => {
+                   if (err) return err;
+                   console.log(`\n ${input.first_name} ${input.last_name} ADDED TO DB! \n `);
+                   mainMenu();
+               }
+               );
+        });
+    });
+
+};
