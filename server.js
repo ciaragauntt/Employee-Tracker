@@ -1,8 +1,7 @@
 const inquirer = require('inquirer');
 //import and require mysql2
 const mysql = require('mysql2');
-const table = require ('console.table');
-const Connection = require('mysql/lib/Connection');
+const consoleTable = require ('console.table');
 const promisesql = require('promise-mysql');
 
 
@@ -12,7 +11,7 @@ const promisesql = require('promise-mysql');
 const db = mysql.createConnection(
     {
         host: 'localhost',
-        port: 3306,
+
         //mysql username
         user: 'root',
         //add mysql password
@@ -25,8 +24,9 @@ db.connect(function(err) {
     startPrompt();
 });
 
-function startPrompt() {
-    inquirer.prompt ([
+const startPrompt = () => {
+    inquirer
+    .prompt ([
         {
         type: 'list',
         name: 'prompt',
@@ -73,10 +73,10 @@ function startPrompt() {
     });
 
 }
-function viewAllDepartments() {
+viewAllDepartments = () => {
     console.log("VIEWING DEPARTMENTS");
-    let departments = `SELECT * FROM department`
-    db.query(departments, (err, results) => {
+    let dep = `SELECT * FROM department`
+    db.query(dep, (err, results) => {
         if (err) throw err;
 
         console.log(`DEPARTMENTS VIEWED\n`);
@@ -85,17 +85,22 @@ function viewAllDepartments() {
     });
 } 
 // View All Employees
-function viewAllEmployees() {
+function viewAllEmployees (){
     console.log("Viewing All Employees");
-    let employees =
-    `SELECT e.id, e.first_name, e.lasy_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
-    FROM employee e
-    LEFT JOIN role r
-        ON e.role_id = r.id
-    LEFT JOIN employee m
-        ON m.id = e.manager_id`
+    let employee =
+    `SELECT employee.id, 
+                      employee.first_name, 
+                      employee.last_name, 
+                      roles.title, 
+                      department.department_name AS department,
+                      roles.salary, 
+                      CONCAT (manager.first_name, " ", manager.last_name) AS manager
+               FROM employee
+                      LEFT JOIN roles ON employee.role_id = roles.id
+                      LEFT JOIN department ON roles.department_id = department.id
+                      LEFT JOIN employee manager ON employee.manager_id = manager.id`;
 
-    db.query(employees, (err, results) => {
+    db.query(employee, (err, results) => {
         if(err) throw err;
 
         console.log(`EMPLOYEES VIEWED\n`);
@@ -109,7 +114,7 @@ function viewAllRoles() {
     console.log("Viewing All Roles");
     let roles = 
     `SELECT roles.id, roles.title, roles.salary, department.department_name FROM roles
-    INNER JOIN department ON roles.department_i=department.id`
+    INNER JOIN department ON roles.department_id=department.id`
     db.query(roles, (err, results) => {
         if(err) throw err;
 
@@ -121,7 +126,7 @@ function viewAllRoles() {
 
 // Add Department
 function addDepartment () {
-    return inquirer.prompt ({
+    inquirer.prompt ({
         type: 'input',
         name: 'department_name',
         message: 'What would you like to name this department?',
