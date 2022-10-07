@@ -19,8 +19,3 @@ VALUES ("Sara", "Smith", 2, null),
        ("Bob", "Burger", 3, null),
        ("Pat", "Mcgee", 4, null),
        ("John", "Doe", 4, null);
-
--- UPDATE employee set manager_id = 4 where id = 2;
--- UPDATE employee set manager_id = 7 where id = 3;
--- UPDATE employee set manager_id = 5 where id = 4;
--- UPDATE employee set manager_id = 5 where id = 5;

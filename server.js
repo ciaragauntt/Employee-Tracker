@@ -8,7 +8,7 @@ const promisesql = require('promise-mysql');
 
 
 //connect to database
-const db = mysql.createConnection(
+const connection = 
     {
         host: 'localhost',
 
@@ -17,14 +17,15 @@ const db = mysql.createConnection(
         //add mysql password
         password: '@Ciaraculverhouse365',
         database: 'employee_db',
-    });
+    };
 
-db.connect(function(err) {
-    if(err)throw err;
-    startPrompt();
-});
+const db = mysql.createConnection(
+    connection,
+    console.log(`Connected to Database`),
+    startPrompt()
+);
 
-const startPrompt = () => {
+async function startPrompt() {
     inquirer
     .prompt ([
         {
@@ -42,8 +43,14 @@ const startPrompt = () => {
                 'End',]
         }
     ])
-    .then(function({prompt}) {
-        switch (prompt) {
+    .then((userSelection) => {
+        userChoice(userSelection)
+    })
+    .catch((err) => console.log(err));
+};
+    
+const userChoice = (userSelection) => {
+        switch (userSelection.prompt) {
             case "View All Departments":
                 viewAllDepartments();
                 break;
@@ -53,16 +60,16 @@ const startPrompt = () => {
             case "View All Roles":
                 viewAllRoles();
                 break;
-            case "Add Department":
+            case "Add A Department":
                 addDepartment();
                 break;
-            case "Add a Role":
+            case "Add A Role":
                 addRole();
                 break;
-            case "Add an Employee":
+            case "Add An Employee":
                 addEmployee();
                 break;
-            case "Update Employee":
+            case "Update An Employee":
                 updateEmployee();
                 break;
             case "End":
@@ -70,9 +77,8 @@ const startPrompt = () => {
                 break;
             
         }
-    });
+    };
 
-}
 viewAllDepartments = () => {
     console.log("VIEWING DEPARTMENTS");
     let dep = `SELECT * FROM department`
@@ -103,7 +109,6 @@ function viewAllEmployees (){
     db.query(employee, (err, results) => {
         if(err) throw err;
 
-        console.log(`EMPLOYEES VIEWED\n`);
         console.table(results);
         startPrompt();
     });
@@ -118,15 +123,16 @@ function viewAllRoles() {
     db.query(roles, (err, results) => {
         if(err) throw err;
 
-        console.log(`VIEWED ROLES\n`);
         console.table(results);
         startPrompt();
     });
-}
+};
 
 // Add Department
-function addDepartment () {
-    inquirer.prompt ({
+addDepartment = () => {
+    inquirer
+    .prompt ([
+        {
         type: 'input',
         name: 'department_name',
         message: 'What would you like to name this department?',
@@ -138,7 +144,8 @@ function addDepartment () {
                 return false;
             }
         }
-    })
+    }
+])
     .then((input) => {
         db.query(
             `insert INTO department (department_name)
@@ -154,216 +161,216 @@ function addDepartment () {
     });
 };
 
-// Add New Role
-function addRole() {
-    let depArray = [];
+// // Add New Role
+// function addRole() {
+//     let depArray = [];
 
-    promisesql.createConnection(db)
-        .then((connect) => {
-            return connect.query(`SELECT id, department_name FROM department`);
-        })
-        .then((departments) => {
-            for(i=0; i < departments.length; i++) {
-            depArray.push(departments[i].department_name);
-        }
-        return departments;
-    })
-    .then((departments) => {
-        inquirer.prompt([
-            {
-                name: 'role_name',
-                type: 'input',
-                message: 'What would you like to name this role?'
-            },
-            {
-                name: 'salary',
-                type: 'input',
-                message: 'What is the salary for this role?',
-                validate: input => {
-                    if(isNaN(input)) {
-                        console.log('Must enter salary');
-                        return false;
-                    } else {
-                        return true;
-                    }
-                }
-            },
-            {
-                name: 'department_role',
-                type: 'list',
-                message: 'Choose a department for this role?',
-                choices: depArray
-            }
-        ])
-        .then((input) => {
-            let depId;
+//     promisesql.createConnection(db)
+//         .then((connect) => {
+//             return connect.query(`SELECT id, department_name FROM department`);
+//         })
+//         .then((departments) => {
+//             for(i=0; i < departments.length; i++) {
+//             depArray.push(departments[i].department_name);
+//         }
+//         return departments;
+//     })
+//     .then((departments) => {
+//         inquirer.prompt([
+//             {
+//                 name: 'role_name',
+//                 type: 'input',
+//                 message: 'What would you like to name this role?'
+//             },
+//             {
+//                 name: 'salary',
+//                 type: 'input',
+//                 message: 'What is the salary for this role?',
+//                 validate: input => {
+//                     if(isNaN(input)) {
+//                         console.log('Must enter salary');
+//                         return false;
+//                     } else {
+//                         return true;
+//                     }
+//                 }
+//             },
+//             {
+//                 name: 'department_role',
+//                 type: 'list',
+//                 message: 'Choose a department for this role?',
+//                 choices: depArray
+//             }
+//         ])
+//         .then((input) => {
+//             let depId;
 
-            for(i=0; i < departments.length; i++) {
-                depId = departments[i].id;
-            }
+//             for(i=0; i < departments.length; i++) {
+//                 depId = departments[i].id;
+//             }
 
-        db.query(`INSERT INTO roles (title, salary, department_id)
-        VALUES ("${input.rolename}", ${input.salary}, ${depId})`, (err, res) => {
-                if (err) return err;
-                console.log(`\n ${input.rolename} has been added to the database! \n`);
-                startPrompt();
-            });
-        });
-    });
-}
+//         db.query(`INSERT INTO roles (title, salary, department_id)
+//         VALUES ("${input.rolename}", ${input.salary}, ${depId})`, (err, res) => {
+//                 if (err) return err;
+//                 console.log(`\n ${input.rolename} has been added to the database! \n`);
+//                 startPrompt();
+//             });
+//         });
+//     });
+// }
 
-// Add Employee
-function addEmployee() {
+// // Add Employee
+// function addEmployee() {
 
-    let roleArray = [];
-    let managerArray = [];
+//     let roleArray = [];
+//     let managerArray = [];
 
-    promisesql.createConnection(db)
-        .then((db) => {
-            return Promise.all([
+//     promisesql.createConnection(db)
+//         .then((db) => {
+//             return Promise.all([
 
-                db.query(`SELECT id, title FROM roles ORDER BY title ASC`),
-                db.query("SELECT employee.id, concat(employee.first_name, ' ', employee.last_name AS Employee FROM employee ORDER BY Employee ASC" )
+//                 db.query(`SELECT id, title FROM roles ORDER BY title ASC`),
+//                 db.query("SELECT employee.id, concat(employee.first_name, ' ', employee.last_name AS Employee FROM employee ORDER BY Employee ASC" )
 
-            ]);
-        }).then(([roles, managers]) => {
-            for (i = 0; i < roles.length; i++) {
-            roleArray.push(roles[i].title);
-        }
-        for (i =0; i < managers.length; i++){
-            managerArray.push(managers[i].Employee);
-        }
-        return Promise.all([roles, managers]);
-    })
-    .then(([roles, managers]) => {
-        managerArray.unshift('--');
+//             ]);
+//         }).then(([roles, managers]) => {
+//             for (i = 0; i < roles.length; i++) {
+//             roleArray.push(roles[i].title);
+//         }
+//         for (i =0; i < managers.length; i++){
+//             managerArray.push(managers[i].Employee);
+//         }
+//         return Promise.all([roles, managers]);
+//     })
+//     .then(([roles, managers]) => {
+//         managerArray.unshift('--');
 
-        inquirer.prompt([
-            {
-                type: 'input',
-                name: 'first_name',
-                message: "Input first name of employee...",
-                validate: function (first_name) {
-                    if (first_name.length <= 30) {
-                        return true;
-                    } else {
-                        console.log(`Must not exceed 30 characters!\n`)
-                        return false;
-                    }
-                }
-            },
-            {
-                type: 'input',
-                name: 'last_name',
-                message: "Input employees last name",
-                validate: function (last_name) {
-                    if (last_name.length <= 30) {
-                        return true;
-                    } else {
-                        console.log(`Must not exceed 30 characters\n`)
-                        return false;
-                    }
-                }
-            },
-            {
-                name: 'role',
-                type: 'list',
-                message: 'Input employees role',
-                choices: roleArray
-            },
-            {
-                name: 'manager',
-                type: 'list',
-                message: 'Who is the employees manager?',
-                choices: managerArray
-            }
-        ])
-        .then ((input) => {
-            let roleId;
-            let managerId = null;
+//         inquirer.prompt([
+//             {
+//                 type: 'input',
+//                 name: 'first_name',
+//                 message: "Input first name of employee...",
+//                 validate: function (first_name) {
+//                     if (first_name.length <= 30) {
+//                         return true;
+//                     } else {
+//                         console.log(`Must not exceed 30 characters!\n`)
+//                         return false;
+//                     }
+//                 }
+//             },
+//             {
+//                 type: 'input',
+//                 name: 'last_name',
+//                 message: "Input employees last name",
+//                 validate: function (last_name) {
+//                     if (last_name.length <= 30) {
+//                         return true;
+//                     } else {
+//                         console.log(`Must not exceed 30 characters\n`)
+//                         return false;
+//                     }
+//                 }
+//             },
+//             {
+//                 name: 'role',
+//                 type: 'list',
+//                 message: 'Input employees role',
+//                 choices: roleArray
+//             },
+//             {
+//                 name: 'manager',
+//                 type: 'list',
+//                 message: 'Who is the employees manager?',
+//                 choices: managerArray
+//             }
+//         ])
+//         .then ((input) => {
+//             let roleId;
+//             let managerId = null;
 
-            for (i = 0; i < roles.length; i++) {
-                if (input.role == roles[i].title){
-                    roleId = roles[i].id;
-                }
-            }
-            for ( i = 0; i < managers.length; i++) {
-                if (input.manager == managers[i].Employee) {
-                    managerId = managers[i].id;
-                }
-            }
-            db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
-            VALUES ("${input.first_name}", "${input.last_name}", ${roleId}, ${managerId})`, (err, res) => {
-                   if (err) return err;
-                   console.log(`\n ${input.first_name} ${input.last_name} ADDED TO DB! \n `);
-                   startPrompt();
-               }
-               );
-        });
-    });
+//             for (i = 0; i < roles.length; i++) {
+//                 if (input.role == roles[i].title){
+//                     roleId = roles[i].id;
+//                 }
+//             }
+//             for ( i = 0; i < managers.length; i++) {
+//                 if (input.manager == managers[i].Employee) {
+//                     managerId = managers[i].id;
+//                 }
+//             }
+//             db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
+//             VALUES ("${input.first_name}", "${input.last_name}", ${roleId}, ${managerId})`, (err, res) => {
+//                    if (err) return err;
+//                    console.log(`\n ${input.first_name} ${input.last_name} ADDED TO DB! \n `);
+//                    startPrompt();
+//                }
+//                );
+//         });
+//     });
 
-};
+// };
 
-//Update Employee
+// //Update Employee
 
-function updateEmployee () {
+// function updateEmployee () {
 
-    let employeeArray = [];
-    let roleArray = [];
+//     let employeeArray = [];
+//     let roleArray = [];
 
-    promisesql.createConnection(db)
-        .then((db) => {
-            return Promise.all([
-                db.query(`SELECT id, title FROM roles ORDER BY title ASC`),
-                db.query("SELECT employee.id, concat(employee.first_name, ' ' ,  employee.last_name) AS Employee FROM employee ORDER BY Employee ASC")
-            ]);
-        }).then(({ roles, employees}) => {
-            for ( i = 0; i < roles.length; i++) {
-                roleArray.push(roles[i].title);
-            }
-            for ( i = 0; i < employees.length; i++) {
-                employeeArray.push(roles[i].title);
-            }
+//     promisesql.createConnection(db)
+//         .then((db) => {
+//             return Promise.all([
+//                 db.query(`SELECT id, title FROM roles ORDER BY title ASC`),
+//                 db.query("SELECT employee.id, concat(employee.first_name, ' ' ,  employee.last_name) AS Employee FROM employee ORDER BY Employee ASC")
+//             ]);
+//         }).then(({ roles, employees}) => {
+//             for ( i = 0; i < roles.length; i++) {
+//                 roleArray.push(roles[i].title);
+//             }
+//             for ( i = 0; i < employees.length; i++) {
+//                 employeeArray.push(roles[i].title);
+//             }
 
-            return Promise.all([roles, employees]);
-        }).then(([roles, employees]) => {
+//             return Promise.all([roles, employees]);
+//         }).then(([roles, employees]) => {
 
-            inquirer.prompt([
-                {
-                    name: 'employee',
-                    type: 'list',
-                    message: 'Which employee would you like to update?',
-                    choices: employeeArray
-                },
-                {
-                    name: 'role',
-                    type: 'list',
-                    message: 'What is their role?',
-                    choices: roleArray
-                },
-            ])
-            .then((input) => {
-                let roleId;
-                let employeeId;
+//             inquirer.prompt([
+//                 {
+//                     name: 'employee',
+//                     type: 'list',
+//                     message: 'Which employee would you like to update?',
+//                     choices: employeeArray
+//                 },
+//                 {
+//                     name: 'role',
+//                     type: 'list',
+//                     message: 'What is their role?',
+//                     choices: roleArray
+//                 },
+//             ])
+//             .then((input) => {
+//                 let roleId;
+//                 let employeeId;
 
-                for ( i = 0; i < roles.length; i++) {
-                    if (input.role == roles[i].title) {
-                        roleId = roles[i].id;
-                    }
-                }
-                for ( i = 0; i < employees.length; i++) {
-                    if(input.employee == employees[i].Employee) {
-                        employeeId = employees[i].id;
-                    }
-                }
-                db.query(`UPDATE employee SET role_id = ${roleId} WHERE id = ${employeeId}`, (err, res) => {
-                    if (err) return err;
-                    console.log(`\n ${input.employee}'s role updated in db \n `);
-                    startPrompt();
-                });
-            });
-        });
-}
+//                 for ( i = 0; i < roles.length; i++) {
+//                     if (input.role == roles[i].title) {
+//                         roleId = roles[i].id;
+//                     }
+//                 }
+//                 for ( i = 0; i < employees.length; i++) {
+//                     if(input.employee == employees[i].Employee) {
+//                         employeeId = employees[i].id;
+//                     }
+//                 }
+//                 db.query(`UPDATE employee SET role_id = ${roleId} WHERE id = ${employeeId}`, (err, res) => {
+//                     if (err) return err;
+//                     console.log(`\n ${input.employee}'s role updated in db \n `);
+//                     startPrompt();
+//                 });
+//             });
+//         });
+// }
 
 function endTracker() {
     console.log('CLOSING EMPLOYEE TRACKER');
