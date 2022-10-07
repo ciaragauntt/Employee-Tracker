@@ -11,7 +11,7 @@ This readme will be updated once the bugs are fixed!
 * Once in mysql:
 * Source schema.sql
 * Source seeds.sql
-*quit
+* quit
 * Open main terminal
 * run: npm start
 
