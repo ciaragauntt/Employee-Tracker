@@ -17,5 +17,7 @@ This readme will be updated once the bugs are fixed!
 
 # Walkthrough Video
 
-https://drive.google.com/file/d/11RQkNoQmyB3PAgdDz62KjpYBsQ6Fi-gp/view
+
+
+https://user-images.githubusercontent.com/103298079/195970306-503568f0-ac63-4aaa-8d7b-ae9033febaa7.mov
 
