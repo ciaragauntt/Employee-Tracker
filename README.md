@@ -16,6 +16,4 @@ This readme will be updated once the bugs are fixed!
 * run: npm start
 
 # Walkthrough Video
-
-https://drive.google.com/file/d/11RQkNoQmyB3PAgdDz62KjpYBsQ6Fi-gp/view
-
+![105CAC49-73D9-40F9-8B70-FE0D41197B2E_1_102_o](https://user-images.githubusercontent.com/103298079/195970211-7ef99661-8779-444d-a620-449a1aab1075.jpeg)
