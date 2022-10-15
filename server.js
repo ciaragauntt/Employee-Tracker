@@ -4,18 +4,12 @@ const mysql = require('mysql2');
 const consoleTable = require ('console.table');
 const promisesql = require('promise-mysql');
 
-
-
-
 //connect to database
 const connection = 
     {
         host: 'localhost',
-
-        //mysql username
         user: 'root',
-        //add mysql password
-        password: '@Ciaraculverhouse365',
+        password: 'Sister365',
         database: 'employee_db',
     };
 
@@ -25,7 +19,7 @@ const db = mysql.createConnection(
     startPrompt()
 );
 
-async function startPrompt() {
+function startPrompt () {
     inquirer
     .prompt ([
         {
@@ -43,49 +37,42 @@ async function startPrompt() {
                 'End',]
         }
     ])
-    .then((userSelection) => {
-        userChoice(userSelection)
-    })
-    .catch((err) => console.log(err));
-};
-    
-const userChoice = (userSelection) => {
-        switch (userSelection.prompt) {
-            case "View All Departments":
-                viewAllDepartments();
-                break;
-            case "View All Employees":
-                viewAllEmployees();
-                break;
-            case "View All Roles":
-                viewAllRoles();
-                break;
-            case "Add A Department":
-                addDepartment();
-                break;
-            case "Add A Role":
-                addRole();
-                break;
-            case "Add An Employee":
-                addEmployee();
-                break;
-            case "Update An Employee":
-                updateEmployee();
-                break;
-            case "End":
-                endTracker();
-                break;
-            
-        }
-    };
+    .then((userSelection => {
+        const {prompt} = userSelection;
 
+        if (prompt === "View All Departments") {
+            viewAllDepartments();
+        }
+        if (prompt === "View All Employees") {
+            viewAllEmployees();
+        }
+        if (prompt === "View All Roles") {
+            viewAllRoles();
+        }
+        if (prompt === "Add A Department") {
+            addDepartment();
+        }
+        if (prompt === "Add A Role") {
+            addRole();
+        }
+        if (prompt === "Add An Employee") {
+            addEmployee();
+        }
+        if (prompt === "Update An Employee") {
+            updateEmployee();
+        }
+        if (prompt === "End") {
+            endTracker();
+        };
+
+    }));
+//view all departments
 viewAllDepartments = () => {
     console.log("VIEWING DEPARTMENTS");
     let dep = `SELECT * FROM department`
     db.query(dep, (err, results) => {
         if (err) throw err;
 
-        console.log(`DEPARTMENTS VIEWED\n`);
         console.table(results);
         startPrompt();
     });
@@ -96,7 +83,7 @@ function viewAllEmployees (){
     let employee =
     `SELECT employee.id, employee.first_name, employee.last_name, roles.title, department.department_name AS department,roles.salary, 
         CONCAT (manager.first_name, " ", manager.last_name) AS manager
-        FROM employee
+        FROM employee 
         LEFT JOIN roles ON employee.role_id = roles.id
         LEFT JOIN department ON roles.department_id = department.id
         LEFT JOIN employee manager ON employee.manager_id = manager.id`;
@@ -111,7 +98,6 @@ function viewAllEmployees (){
 
 // View All Roles
 function viewAllRoles() {
-    console.log("Viewing All Roles");
     let roles = 
     `SELECT roles.id, roles.title, roles.salary, department.department_name FROM roles
     INNER JOIN department ON roles.department_id=department.id`
@@ -132,10 +118,9 @@ addDepartment = () => {
         name: 'department_name',
         message: 'What would you like to name this department?',
         validate: function (department_name) {
-            if (department_name.length <= 30) {
+            if (department_name) {
                 return true;
             } else {
-                console.log("Must not exceed 30 characters!");
                 return false;
             }
         }
@@ -148,15 +133,14 @@ addDepartment = () => {
                 (err, results) => {
                     if (err) throw err;
 
-                    console.log(`CREATED DEPARTMENT\n`);
                     console.log(`${input.department_name} added to db`);
                     startPrompt();
                 }
         );
     });
 };
-
-function endTracker() {
+}
+endTracker = () => {
     console.log('CLOSING EMPLOYEE TRACKER');
     db.end();
 }
