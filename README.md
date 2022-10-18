@@ -1,7 +1,6 @@
 # Employee-Tracker
 With this application you can keep track of all your employees, their title in the business, department, and salary.
-For now you can add a department as well. There are currently come issues and bugs that need to be fixed in order to add role, and add employee.
-This readme will be updated once the bugs are fixed!
+For now you can add a department and add a role! The video was too big and my screencastify was not working so I had to screen record and compress the video using clideo.com.
 
 # Installation
 * clone repository from github
