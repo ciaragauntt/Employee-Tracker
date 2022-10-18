@@ -68,7 +68,7 @@ function startPrompt () {
     }));
 //view all departments
 viewAllDepartments = () => {
-    console.log("VIEWING DEPARTMENTS");
+    console.log("Viewing All Departments");
     let dep = `SELECT * FROM department`
     db.query(dep, (err, results) => {
         if (err) throw err;
@@ -98,6 +98,7 @@ function viewAllEmployees (){
 
 // View All Roles
 function viewAllRoles() {
+    console.log("Viewing All Roles");
     let roles = 
     `SELECT roles.id, roles.title, roles.salary, department.department_name FROM roles
     INNER JOIN department ON roles.department_id=department.id`
@@ -111,11 +112,12 @@ function viewAllRoles() {
 
 // Add Department
 addDepartment = () => {
+    console.log("Adding A Department");
     inquirer
     .prompt ([
         {
         type: 'input',
-        name: 'department_name',
+        name: 'newDep',
         message: 'What would you like to name this department?',
         validate: function (department_name) {
             if (department_name) {
@@ -126,20 +128,77 @@ addDepartment = () => {
         }
     }
 ])
-    .then((input) => {
+    .then( input => {
+
         db.query(
             `insert INTO department (department_name)
-            VALUES ('${input.department_name}');`,
+            VALUES (?);`, input.newDep,
                 (err, results) => {
                     if (err) throw err;
 
-                    console.log(`${input.department_name} added to db`);
-                    startPrompt();
+                    viewAllDepartments();
                 }
         );
     });
 };
+//add new role
+const addRole = () => {
+console.log("Adding A New Role");
+        inquirer.
+        prompt([
+            {
+            type: 'input',
+            name: 'newRole',
+            message: 'What role do you want to add?',
+            validate: addRole => {
+                if (addRole) {
+                    return true;
+                } else {
+                    return false;
+                }
+                }
+            },
+            {
+                type: 'input',
+                name: 'salary',
+                message: 'What is this roles salary?',
+            },
+        ])
+        .then (input => {
+            const newRoleArray = [input.newRole, input.salary ];
+            const newRoleSql = `Select department_name, id FROM department`;
+
+            db.query(newRoleSql, (err, data) => {
+                const dep = data.map(({department_name, id}) => (({name: department_name, value: id})));
+
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'dep',
+                        message: 'What department does this role belong in?',
+                        choices: dep
+                    }
+                ])
+                .then(depChoice => {
+                    const dep = depChoice.dep;
+                    newRoleArray.push(dep);
+
+                    const sql = ` INSERT INTO roles (title, salary, department_id)
+                                VALUES (?, ?, ?)`;
+                    
+
+                    db.query(sql, newRoleArray, (err, result) => {
+                        if(err) throw err;
+
+                        viewAllRoles();
+                    });
+
+                });
+            });
+        });
+};
 }
+ 
 endTracker = () => {
     console.log('CLOSING EMPLOYEE TRACKER');
     db.end();
