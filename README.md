@@ -20,7 +20,4 @@ This readme will be updated once the bugs are fixed!
 
 
 
-
-
-https://user-images.githubusercontent.com/103298079/196540929-caccf51b-093d-495c-a602-50979a4b7a8d.mov
-
+![9CA26C87-2339-405B-846B-70DE825A0B19_1_102_o](https://user-images.githubusercontent.com/103298079/196541996-6d05bd75-0f64-493d-a606-a41161ca2267.jpeg)
